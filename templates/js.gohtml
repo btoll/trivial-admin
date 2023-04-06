@@ -1,0 +1,199 @@
+{{ define "js" }}
+const createChoices = () => {
+    const fragment = new DocumentFragment();
+    const answers = document.getElementById("answers");
+    for (let i = 0; i < answers.value; i++) {
+        let p = document.createElement("p");
+
+        let label = document.createElement("label");
+        label.setAttribute("htmlFor", `answer${i}`);
+        label.appendChild(document.createTextNode(`Answer${i+1}`));
+        p.appendChild(label);
+
+        let input = document.createElement("input");
+        input.setAttribute("id", `answer${i}`);
+        input.setAttribute("name", `answer${i}`);
+        input.setAttribute("type", "text");
+        input.setAttribute("required", "required");
+        p.appendChild(input);
+
+        let checkbox = document.createElement("input");
+        checkbox.setAttribute("id", `checkbox${i}`);
+        checkbox.setAttribute("name", `checkbox${i}`);
+        checkbox.setAttribute("type", "checkbox");
+        p.appendChild(checkbox);
+
+        fragment.appendChild(p);
+    }
+    return fragment;
+};
+
+const getXHR = (method, api) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, `http://localhost:3001/${api}`, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    return xhr;
+};
+
+document.addEventListener("DOMContentLoaded", event => {
+    const authForm = document.getElementById("auth");
+    const authLink = document.getElementById("authLink");
+    const username = document.getElementById("username");
+    const password = document.getElementById("password");
+    const formError = document.getElementById("formError");
+    const questions = document.getElementById("questions");
+    const questionsForm = document.getElementById("questionsForm");
+    const question = document.getElementById("question");
+    const choices = document.getElementById("choices");
+    const createAnswers = document.getElementById("createAnswers");
+    const submitQuestion = document.getElementById("submitQuestion");
+    const printGame = document.getElementById("printGame");
+    const printResults = document.getElementById("printResults");
+    const downloadGame = document.getElementById("downloadGame");
+
+    let formType = "login";
+    username.focus();
+
+    authForm.addEventListener("submit", event => {
+        if (username.value != "" && password.value != "") {
+            const xhr = getXHR("POST", formType);
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resp = JSON.parse(xhr.response);
+                    if (!resp.success) {
+                        formError.classList.remove("hide");
+                        formError.innerHTML = resp.ui_message;
+                    } else if (formType == "login") {
+                        auth.classList.add("hide");
+                        questions.classList.toggle("hide");
+                    } else if (formType == "create") {
+                        formError.innerHTML = resp.ui_message;
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({
+                username: username.value,
+                password: password.value
+            }));
+        }
+        event.preventDefault();
+    });
+
+    authLink.addEventListener("click", event => {
+        const legend = authForm.getElementsByTagName("legend")[0]
+        if (formType == "login") {
+            formType = "create";
+            legend.textContent = "Create User";
+            authLink.textContent = "Login User";
+        } else {
+            formType = "login";
+            legend.textContent = "Login User";
+            authLink.textContent = "Create User";
+        }
+        username.value = "";
+        password.value = "";
+        formError.classList.toggle("hide");
+        event.preventDefault();
+    });
+
+    createAnswers.addEventListener("click", event => {
+        choices.appendChild(createChoices());
+        createAnswers.setAttribute("disabled", "disabled");
+        submitQuestion.disabled = false;
+    });
+
+    downloadGame.addEventListener("click", event => {
+        const xhr = getXHR("GET", "download");
+        xhr.responseType = "arraybuffer";
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                // https://gist.github.com/zynick/12bae6dbc76f6aacedf0
+                let filename = "";
+                const disposition = xhr.getResponseHeader("Content-Disposition");
+                // TODO.
+                if (disposition && disposition.indexOf("attachment") !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                }
+                const blob = new Blob([xhr.response], {
+                    type: xhr.getResponseHeader("Content-Type")
+                });
+                const URL = window.URL || window.webkitURL;
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                // HTML5 a[download] attribute.
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                // Cleanup.
+                setTimeout(function () {
+                    URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+                }, 1000);
+            }
+        };
+        xhr.send(null);
+    });
+
+    printGame.addEventListener("click", event => {
+        const xhr = getXHR("GET", "print");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                let questions = [];
+                resp.forEach(q => {
+                    let entry = [];
+                    entry.push(q.name, q.weight, q.answer.join(","));
+                    q.choices.reduce((acc, curr) => {
+                        acc.push(curr);
+                        return acc;
+                    }, entry);
+                    questions.push(entry.join("|"));
+                });
+                printResults.innerHTML = questions.join("<br>");
+            }
+        };
+        xhr.send(null);
+    });
+
+    questionsForm.addEventListener("submit", event => {
+        checked = choices.querySelectorAll("input[type=checkbox]:checked")
+        if (!checked.length) {
+            alert("You need to mark at least one choice as correct.");
+        } else {
+            const xhr = getXHR("POST", "question");
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resp = JSON.parse(xhr.response);
+                    if (!resp.success) {
+                        debugger;
+                    } else {
+                        alert("Way to go, message received.");
+                        choices.innerHTML = "";
+                        question.value = "";
+                        createAnswers.disabled = false;
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({
+                name: question.value,
+                weight: parseInt(document.getElementById("weight").value, 10),
+                answer: Array.from(checked).reduce(
+                    (acc, curr) => {
+                        acc.push(parseInt(curr.id.slice(-1), 10) + 1);
+                        return acc;
+                    }, []),
+                choices: Array.from(choices.querySelectorAll("input[type=text]")).reduce(
+                    (acc, curr) => {
+                        acc.push(curr.value);
+                        return acc;
+                    }, [])
+            }));
+        }
+        event.preventDefault();
+    });
+});
+{{ end }}
+
