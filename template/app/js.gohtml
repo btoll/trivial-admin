@@ -30,71 +30,34 @@ const createChoices = () => {
 
 const getXHR = (method, api) => {
     const xhr = new XMLHttpRequest();
-    xhr.open(method, `http://localhost:3001/${api}`, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.open(method, `https://127.0.0.1:3001/${api}`, true);
+    xhr.withCredentials = true;
+    // Note: setting this header triggers:
+    // Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at
+    // https://127.0.0.1:3001/login. (Reason: CORS preflight response did not succeed). Status code: 500.
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSPreflightDidNotSucceed
+    //xhr.setRequestHeader("Content-Type", "application/json");
     return xhr;
 };
 
 document.addEventListener("DOMContentLoaded", event => {
-    const authForm = document.getElementById("auth");
-    const authLink = document.getElementById("authLink");
-    const username = document.getElementById("username");
-    const password = document.getElementById("password");
+    const menu = document.getElementById("menu");
     const formError = document.getElementById("formError");
-    const questions = document.getElementById("questions");
+    const createGame = document.getElementById("createGame");
+    const runGame = document.getElementById("runGame");
+    const viewGame = document.getElementById("viewGame");
     const questionsForm = document.getElementById("questionsForm");
+    const gameName = document.getElementById("gameName");
+    const fileName = document.getElementById("fileName");
     const question = document.getElementById("question");
     const choices = document.getElementById("choices");
     const createAnswers = document.getElementById("createAnswers");
     const submitQuestion = document.getElementById("submitQuestion");
-    const printGame = document.getElementById("printGame");
-    const printResults = document.getElementById("printResults");
+    const viewGameResults = document.getElementById("viewGameResults");
     const downloadGame = document.getElementById("downloadGame");
-
-    let formType = "login";
-    username.focus();
-
-    authForm.addEventListener("submit", event => {
-        if (username.value != "" && password.value != "") {
-            const xhr = getXHR("POST", formType);
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    resp = JSON.parse(xhr.response);
-                    if (!resp.success) {
-                        formError.classList.remove("hide");
-                        formError.innerHTML = resp.ui_message;
-                    } else if (formType == "login") {
-                        auth.classList.add("hide");
-                        questions.classList.toggle("hide");
-                    } else if (formType == "create") {
-                        formError.innerHTML = resp.ui_message;
-                    }
-                }
-            };
-            xhr.send(JSON.stringify({
-                username: username.value,
-                password: password.value
-            }));
-        }
-        event.preventDefault();
-    });
-
-    authLink.addEventListener("click", event => {
-        const legend = authForm.getElementsByTagName("legend")[0]
-        if (formType == "login") {
-            formType = "create";
-            legend.textContent = "Create User";
-            authLink.textContent = "Login User";
-        } else {
-            formType = "login";
-            legend.textContent = "Login User";
-            authLink.textContent = "Create User";
-        }
-        username.value = "";
-        password.value = "";
-        formError.classList.toggle("hide");
-        event.preventDefault();
-    });
+    const createGameLink = document.getElementById("createGameLink");
+    const runGameLink = document.getElementById("runGameLink");
+    const viewGameLink = document.getElementById("viewGameLink");
 
     createAnswers.addEventListener("click", event => {
         choices.appendChild(createChoices());
@@ -102,8 +65,32 @@ document.addEventListener("DOMContentLoaded", event => {
         submitQuestion.disabled = false;
     });
 
+    createGameLink.addEventListener("click", event => {
+        createGame.classList.remove("hide");
+        runGame.classList.add("hide");
+        viewGame.classList.add("hide");
+    });
+
+    runGameLink.addEventListener("click", event => {
+        runGame.classList.remove("hide");
+        createGame.classList.add("hide");
+        viewGame.classList.add("hide");
+    });
+
+    viewGameLink.addEventListener("click", event => {
+        viewGame.classList.remove("hide");
+        runGame.classList.add("hide");
+        createGame.classList.add("hide");
+        const xhr = getXHR("GET", "get_games");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+            }
+        };
+        xhr.send(null);
+    });
+
     downloadGame.addEventListener("click", event => {
-        const xhr = getXHR("GET", "download");
+        const xhr = getXHR("POST", "download");
         xhr.responseType = "arraybuffer";
         xhr.onload = () => {
             if (xhr.status === 200) {
@@ -134,28 +121,9 @@ document.addEventListener("DOMContentLoaded", event => {
                 }, 1000);
             }
         };
-        xhr.send(null);
-    });
-
-    printGame.addEventListener("click", event => {
-        const xhr = getXHR("GET", "print");
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                resp = JSON.parse(xhr.response);
-                let questions = [];
-                resp.forEach(q => {
-                    let entry = [];
-                    entry.push(q.name, q.weight, q.answer.join(","));
-                    q.choices.reduce((acc, curr) => {
-                        acc.push(curr);
-                        return acc;
-                    }, entry);
-                    questions.push(entry.join("|"));
-                });
-                printResults.innerHTML = questions.join("<br>");
-            }
-        };
-        xhr.send(null);
+        xhr.send(JSON.stringify({
+            filename: fileName.value,
+        }));
     });
 
     questionsForm.addEventListener("submit", event => {
@@ -178,6 +146,7 @@ document.addEventListener("DOMContentLoaded", event => {
                 }
             };
             xhr.send(JSON.stringify({
+                filename: fileName.value,
                 name: question.value,
                 weight: parseInt(document.getElementById("weight").value, 10),
                 answer: Array.from(checked).reduce(
@@ -194,6 +163,29 @@ document.addEventListener("DOMContentLoaded", event => {
         }
         event.preventDefault();
     });
+
+    /*
+    viewGame.addEventListener("click", event => {
+        const xhr = getXHR("GET", "view");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                let questions = [];
+                resp.forEach(q => {
+                    let entry = [];
+                    entry.push(q.name, q.weight, q.answer.join(","));
+                    q.choices.reduce((acc, curr) => {
+                        acc.push(curr);
+                        return acc;
+                    }, entry);
+                    questions.push(entry.join("|"));
+                });
+                viewGameResults.innerHTML = questions.join("<br>");
+            }
+        };
+        xhr.send(null);
+    });
+    */
 });
 {{ end }}
 

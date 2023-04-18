@@ -1,0 +1,55 @@
+{{ define "css" }}
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+body {
+    background-color: #7387a6;
+    display: flex;
+}
+li {
+    list-style-type: none;
+    margin: 2% 0;
+}
+form {
+    background-color: #fff;
+	border-radius: 25px;
+	border: 4px solid #A5AAB5;
+    margin: auto;
+	padding: 40px;
+}
+form fieldset {
+    border: 0;
+}
+form legend {
+    font-weight: bold;
+}
+form #formError {
+    color: red;
+}
+form label {
+    display: inline-block;
+    text-align: right;
+    width: 100px;
+}
+.bold {
+    font-weight: bold;
+}
+.correct {
+    color: blue;
+}
+.incorrect {
+    color: red;
+}
+.hide {
+	display: none;
+}
+.show {
+    display: block;
+}
+.transparent {
+    opacity: 0;
+}
+{{ end }}
+

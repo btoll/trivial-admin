@@ -12,6 +12,17 @@ li {
     list-style-type: none;
     margin: 2% 0;
 }
+#menu {
+    background-color: #fff;
+    font-size: 1.3em;
+    margin: 0;
+    padding: 1%;
+    text-align: left;
+    width: 10%;
+}
+#menu li {
+    cursor: pointer;
+}
 form fieldset {
     border: 0;
 }
@@ -31,14 +42,23 @@ form #formError {
 form label {
     display: inline-block;
     text-align: right;
-    width: 100px;
+    width: 130px;
 }
-div#questions {
+div#createGame {
     margin: 20px auto auto;
     width: 50%;
 }
-form#questionsForm input[type=text] {
+div#createGame form#questionsForm input[type=text] {
     width: 250px;
+}
+div#createGame form#questionsForm textarea {
+    height: 140px;
+    width: 500px;
+}
+div#createGame #printResults {
+    background-color: #fff;
+	border-radius: 5px;
+    padding: 10px;
 }
 div#weight {
     font-size: .7em;

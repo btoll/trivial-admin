@@ -1,9 +1,19 @@
-{{ define "questions" }}
-<div id="questions" class="hide">
+{{ define "createGame" }}
+<div id="createGame" class="hide">
     <form id="questionsForm">
         <p>
+        <label for="gameName">Game Name</label>
+        <input id="gameName" name="gameName" type="text" required>
+        </p>
+
+        <p>
+        <label for="fileName">File Name</label>
+        <input id="fileName" name="fileName" type="text" placeholder="game_name.csv" required>
+        </p>
+
+        <p>
         <label for="question">Question</label>
-        <input id="question" name="question" type="text" required>
+        <textarea id="question" name="question" required></textarea>
         </p>
 
         <p>
@@ -29,11 +39,8 @@
 
     <div>
         <p>
-        <input id="printGame" value="Print Game" type="button">
         <input id="downloadGame" value="Download Game" type="button">
         </p>
-        <div id="printResults">
-        </div>
     </div>
 </div>
 {{ end }}

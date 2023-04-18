@@ -1,0 +1,46 @@
+{{ define "login" }}
+<form id="auth" action="/signin" method="post">
+    <fieldset>
+        <legend>User Login</legend>
+        <p>
+        <label for="usernameLogin">Username</label>
+        <input id="usernameLogin" name="usernameLogin" type="text" maxlength="22" required>
+        </p>
+
+        <p>
+        <label for="passwordLogin">Password</label>
+        <input id="passwordLogin" name="passwordLogin" type="password" required>
+        </p>
+
+        <!-- The label only exists to align the button. -->
+        <p>
+        <label class="transparent">foo</label>
+        <input id="submitLogin" name="submitLogin" value="Login" type="submit">
+        </p>
+
+        <p id="formError" class="hide"></p>
+    </fieldset>
+</form>
+
+<form id="createLogin" action="/create" method="post">
+    <fieldset>
+        <legend>Create User Login</legend>
+        <p>
+        <label for="usernameCreate">Username</label>
+        <input id="usernameCreate" name="usernameCreate" type="text" maxlength="22" required>
+        </p>
+
+        <p>
+        <label for="passwordCreate">Password</label>
+        <input id="passwordCreate" name="passwordCreate" type="password" required>
+        </p>
+
+        <!-- The label only exists to align the button. -->
+        <p>
+        <label class="transparent">foo</label>
+        <input id="submitCreate" name="submitCreate" value="Create" type="submit">
+        </p>
+    </fieldset>
+</form>
+{{ end }}
+
