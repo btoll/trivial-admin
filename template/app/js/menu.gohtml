@@ -1,0 +1,37 @@
+{{ define "js/menu" }}
+document.addEventListener("DOMContentLoaded", event => {
+    const menu = document.getElementById("menu");
+    const createGameLink = document.getElementById("createGameLink");
+    const runGameLink = document.getElementById("runGameLink");
+    const viewGameLink = document.getElementById("viewGameLink");
+    const viewGameList = document.getElementById("viewGameList");
+
+    createGameLink.addEventListener("click", event => {
+        createGame.classList.remove("hide");
+        runGame.classList.add("hide");
+        viewGame.classList.add("hide");
+    });
+
+    runGameLink.addEventListener("click", event => {
+        runGame.classList.remove("hide");
+        createGame.classList.add("hide");
+        viewGame.classList.add("hide");
+    });
+
+    viewGameLink.addEventListener("click", event => {
+        viewGame.classList.remove("hide");
+        runGame.classList.add("hide");
+        createGame.classList.add("hide");
+        const xhr = getXHR("GET", "get_games");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                viewGameList.innerHTML = "";
+                viewGameList.appendChild(makeSelections(JSON.parse(resp.ui_message)));
+            }
+        };
+        xhr.send(null);
+    });
+});
+{{ end }}
+

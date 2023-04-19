@@ -1,0 +1,24 @@
+{{ define "js/gameAndFilename" }}
+document.addEventListener("DOMContentLoaded", event => {
+    document.getElementById("gameAndFilenameForm").addEventListener("submit", event => {
+        const xhr = getXHR("POST", "add_game");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                if (!resp.success) {
+                    debugger;
+                } else {
+                    alert("Game and file created.");
+                    document.getElementById("addGameAndFilename").disabled = "true";
+                }
+            }
+        };
+        xhr.send(JSON.stringify({
+            name: document.getElementById("gameName").value,
+            filename: document.getElementById("fileName").value
+        }));
+        event.preventDefault();
+    });
+});
+{{ end }}
+

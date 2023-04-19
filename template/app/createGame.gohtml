@@ -1,47 +1,14 @@
 {{ define "createGame" }}
 <div id="createGame" class="hide">
-    <form id="questionsForm">
-        <p>
-        <label for="gameName">Game Name</label>
-        <input id="gameName" name="gameName" type="text" required>
-        </p>
-
-        <p>
-        <label for="fileName">File Name</label>
-        <input id="fileName" name="fileName" type="text" placeholder="game_name.csv" required>
-        </p>
-
-        <p>
-        <label for="question">Question</label>
-        <textarea id="question" name="question" required></textarea>
-        </p>
-
-        <p>
-        <label for="weight">Weight</label>
-        <input id="weight" name="weight" type="number" step="5" min="10" value="50" placeholder="Points for correct answer" required>
-        </p>
-
-        <p>
-        <label for="answers">Answers</label>
-        <input id="answers" name="answers" type="number" step="1" min="1" max="10" value="6" required>
-        <input id="createAnswers" name="createAnswers" value="Go" type="button">
-        </p>
-
-        <div id="choices">
-        </div>
-
-        <!-- The label only exists to align the button. -->
-        <p>
-        <label class="transparent">foo</label>
-        <input id="submitQuestion" name="submitQuestion" value="Submit Question" type="submit" disabled>
-        </p>
-    </form>
-
+    {{ template "form/gameAndFilename" }}
+    {{ template "form/createGame" }}
+    <!--
     <div>
         <p>
         <input id="downloadGame" value="Download Game" type="button">
         </p>
     </div>
+    -->
 </div>
 {{ end }}
 

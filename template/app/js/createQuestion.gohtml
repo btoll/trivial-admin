@@ -1,0 +1,119 @@
+{{ define "js/createQuestion" }}
+document.addEventListener("DOMContentLoaded", event => {
+    const questionsForm = document.getElementById("questionsForm");
+    const fileName = document.getElementById("fileName");
+    const question = document.getElementById("question");
+    const choicesDiv = document.getElementById("choicesDiv");
+    const createChoices = document.getElementById("createChoices");
+    const addQuestion = document.getElementById("addQuestion");
+
+    createChoices.addEventListener("click", event => {
+        choicesDiv.appendChild(
+            makeChoices(document.getElementById("choices").value)
+            );
+        createChoices.setAttribute("disabled", "disabled");
+        addQuestion.disabled = false;
+    });
+
+    /*
+    downloadGame.addEventListener("click", event => {
+        const xhr = getXHR("POST", "download");
+        xhr.responseType = "arraybuffer";
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                // https://gist.github.com/zynick/12bae6dbc76f6aacedf0
+                let filename = "";
+                const disposition = xhr.getResponseHeader("Content-Disposition");
+                // TODO.
+                if (disposition && disposition.indexOf("attachment") !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                }
+                const blob = new Blob([xhr.response], {
+                    type: xhr.getResponseHeader("Content-Type")
+                });
+                const URL = window.URL || window.webkitURL;
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                // HTML5 a[download] attribute.
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                // Cleanup.
+                setTimeout(function () {
+                    URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+                }, 1000);
+            }
+        };
+        xhr.send(JSON.stringify({
+            filename: fileName.value,
+        }));
+    });
+    */
+
+    questionsForm.addEventListener("submit", event => {
+        checked = choicesDiv.querySelectorAll("input[type=checkbox]:checked")
+        if (!checked.length) {
+            alert("You need to mark at least one choice as correct.");
+        } else {
+            const xhr = getXHR("POST", "question");
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resp = JSON.parse(xhr.response);
+                    if (!resp.success) {
+                        debugger;
+                    } else {
+                        alert("Way to go, message received.");
+                        choicesDiv.innerHTML = "";
+                        question.value = "";
+                        createChoices.disabled = false;
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({
+                filename: fileName.value,
+                name: question.value,
+                weight: parseInt(document.getElementById("weight").value, 10),
+                answer: Array.from(checked).reduce(
+                    (acc, curr) => {
+                        acc.push(parseInt(curr.id.slice(-1), 10) + 1);
+                        return acc;
+                    }, []),
+                choices: Array.from(choicesDiv.querySelectorAll("input[type=text]")).reduce(
+                    (acc, curr) => {
+                        acc.push(curr.value);
+                        return acc;
+                    }, [])
+            }));
+        }
+        event.preventDefault();
+    });
+
+    /*
+    viewGame.addEventListener("click", event => {
+        const xhr = getXHR("GET", "view");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                let questions = [];
+                resp.forEach(q => {
+                    let entry = [];
+                    entry.push(q.name, q.weight, q.answer.join(","));
+                    q.choices.reduce((acc, curr) => {
+                        acc.push(curr);
+                        return acc;
+                    }, entry);
+                    questions.push(entry.join("|"));
+                });
+                viewGameResults.innerHTML = questions.join("<br>");
+            }
+        };
+        xhr.send(null);
+    });
+    */
+});
+{{ end }}
+

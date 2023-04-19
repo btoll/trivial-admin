@@ -35,6 +35,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", BaseHandler)
+	mux.HandleFunc("/add_game", AddGameHandler)
 	mux.HandleFunc("/create", CreateLoginHandler)
 	mux.HandleFunc("/download", DownloadHandler)
 	mux.HandleFunc("/get_games", GetGamesHandler)

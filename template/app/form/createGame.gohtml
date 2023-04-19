@@ -1,0 +1,31 @@
+{{ define "form/createGame" }}
+    <form id="questionsForm">
+        <div id="questionAndChoices">
+            <p>
+            <label for="question">Question</label>
+            <textarea id="question" name="question" required></textarea>
+            </p>
+
+            <p>
+            <label for="weight">Weight</label>
+            <input id="weight" name="weight" type="number" step="5" min="10" value="50" placeholder="Points for correct answer" required>
+            </p>
+
+            <p>
+            <label for="choices">Choices</label>
+            <input id="choices" name="choices" type="number" step="1" min="1" max="10" value="6" required>
+            <input id="createChoices" name="createChoices" value="Go" type="button">
+            </p>
+
+            <div id="choicesDiv">
+            </div>
+
+            <!-- The label only exists to align the button. -->
+            <p>
+            <label class="transparent">foo</label>
+            <input id="addQuestion" name="addQuestion" value="Add Question" type="submit" disabled>
+            </p>
+        </div>
+    </form>
+{{ end }}
+

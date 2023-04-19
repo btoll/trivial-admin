@@ -47,9 +47,6 @@ func NewSessionManager() SessionManager {
 
 func NewSession(username string) *Session {
 	_uuid := uuid.NewString()
-	fmt.Println("username", username)
-	fmt.Println("username", username)
-	fmt.Println("username", username)
 	session := &Session{
 		Username: username,
 		Value:    _uuid,
