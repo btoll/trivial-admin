@@ -37,9 +37,8 @@ type Response struct {
 }
 
 type Game struct {
-	Name     string `json:"name"`
-	Filename string `json:"filename"`
-	//	Questions []*Question `json:"questions"`
+	Name      string   `json:"name"`
+	Filename  string   `json:"filename"`
 	Questions []string `json:"questions"`
 }
 
@@ -144,6 +143,13 @@ func CreateQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	file, err := os.OpenFile(fmt.Sprintf("games/%s/%s", session.Username, question.Filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: "Question could not be written to disk, try again.",
+		})
+		return
+	}
 	defer file.Close()
 	_, err = fmt.Fprintf(file,
 		"%s|%d|%s|%s\n",
@@ -157,26 +163,28 @@ func CreateQuestionHandler(w http.ResponseWriter, r *http.Request) {
 			Success:   false,
 			UIMessage: "Question could not be written to disk, try again.",
 		})
-	} else {
-		game = append(game, question)
-		json.NewEncoder(w).Encode(&Response{
-			Success:   true,
-			UIMessage: "Question successfully received and written to disk.",
-		})
+		return
 	}
+	game = append(game, question)
+	json.NewEncoder(w).Encode(&Response{
+		Success:   true,
+		UIMessage: "Question successfully received and written to disk.",
+	})
 }
 
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	ctxVal := r.Context().Value("session")
+	session := ctxVal.(*Session)
 	setCorsHeaders(w)
-	question := &Question{}
-	err := json.NewDecoder(r.Body).Decode(question)
+	game := &Game{}
+	err := json.NewDecoder(r.Body).Decode(game)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", question.Filename))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", game.Filename))
 	w.Header().Set("Content-Type", "application/octet-stream")
-	http.ServeFile(w, r, fmt.Sprintf("games/%s", question.Filename))
+	http.ServeFile(w, r, fmt.Sprintf("games/%s/%s", session.Username, game.Filename))
 }
 
 func GetGamesHandler(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +241,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ReadfileHandler(w http.ResponseWriter, r *http.Request) {
+func ReadGameHandler(w http.ResponseWriter, r *http.Request) {
 	ctxVal := r.Context().Value("session")
 	session := ctxVal.(*Session)
 	question := &Question{}
@@ -285,6 +293,52 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	NewSession(l.Username).WriteCookie(w)
 	http.Redirect(w, r, "https://127.0.0.1:3001/", 302)
+}
+
+func UpdateGameHandler(w http.ResponseWriter, r *http.Request) {
+	ctxVal := r.Context().Value("session")
+	session := ctxVal.(*Session)
+	game := &Game{}
+	err := json.NewDecoder(r.Body).Decode(game)
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+	// This should overwrite the existing file.
+	file, err := os.OpenFile(fmt.Sprintf("games/%s/%s", session.Username, game.Filename), os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+	defer file.Close()
+	buf := bufio.NewWriter(file)
+	for _, line := range game.Questions {
+		_, err := buf.WriteString(line + "\n")
+		if err != nil {
+			json.NewEncoder(w).Encode(&Response{
+				Success:   false,
+				UIMessage: fmt.Sprintf("%s", err),
+			})
+			return
+		}
+	}
+	if err = buf.Flush(); err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+	json.NewEncoder(w).Encode(&Response{
+		Success:   true,
+		UIMessage: "Game successfully written",
+	})
 }
 
 func ViewGameHandler(w http.ResponseWriter, r *http.Request) {

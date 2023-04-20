@@ -3,16 +3,20 @@
     <form id="viewGameForm">
         <div>
             <p>
-            <label for="viewGameList">Select Game</label>
-            <select name="viewGameList" id="viewGameList">
+            <label for="gameList">Select Game</label>
+            <select name="gameList">
             </select>
             </p>
         </div>
     </form>
 
-    <form id="displayGame">
+    <form id="displayGame" class="hide">
         <div contenteditable="true">
         </div>
+        <p>
+        <input id="updateGame" value="Update Game" type="button">
+        <input id="downloadGame" value="Download Game" type="button">
+        </p>
     </form>
 </div>
 {{ end }}

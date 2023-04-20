@@ -1,19 +1,84 @@
 {{ define "js/viewGame" }}
 document.addEventListener("DOMContentLoaded", event => {
-    document.getElementById("viewGameList").addEventListener("change", event => {
-        const target = event.target;
-        const xhr = getXHR("POST", "readfile");
+    const viewGameList = document.getElementById("viewGameForm").querySelector("select[name=gameList]");
+    const displayGame = document.getElementById("displayGame");
+    const displayGameDiv = displayGame.getElementsByTagName("div")[0];
+    const downloadGame = document.getElementById("downloadGame");
+
+    downloadGame.addEventListener("click", event => {
+        const xhr = getXHR("POST", "download");
+        xhr.responseType = "arraybuffer";
         xhr.onload = () => {
             if (xhr.status === 200) {
+                // https://gist.github.com/zynick/12bae6dbc76f6aacedf0
+                let filename = "";
+                const disposition = xhr.getResponseHeader("Content-Disposition");
+                // TODO.
+                if (disposition && disposition.indexOf("attachment") !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                }
+                const blob = new Blob([xhr.response], {
+                    type: xhr.getResponseHeader("Content-Type")
+                });
+                const URL = window.URL || window.webkitURL;
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                // HTML5 a[download] attribute.
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                // Cleanup.
+                setTimeout(function () {
+                    URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+                }, 1000);
+            }
+        };
+        xhr.send(JSON.stringify({
+            name: viewGameList.options[viewGameList.selectedIndex].textContent,
+            filename: viewGameList.value,
+        }));
+    });
+
+    displayGame.querySelector("[contenteditable]").addEventListener("input", event => {
+        downloadGame.disabled = true;
+    });
+
+    viewGameList.addEventListener("change", event => {
+        const target = event.target;
+        const xhr = getXHR("POST", "read_game");
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                debugger;
                 resp = JSON.parse(xhr.response);
-                document.getElementById("displayGame")
-                    .getElementsByTagName("div")[0]
-                    .innerHTML = resp.questions.join("<br>");
+                displayGame.classList.remove("hide");
+                displayGameDiv.innerHTML = resp.questions ?
+                    resp.questions.join("<br>") :
+                    "";
             }
         };
         xhr.send(JSON.stringify({
             name: target.options[target.selectedIndex].textContent,
             filename: target.value
+        }));
+    });
+
+    // Note that a game with no questions can still be updated using this method.
+    document.getElementById("updateGame").addEventListener("click", event => {
+        const xhr = getXHR("POST", "update_game");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                downloadGame.disabled = false;
+            }
+        };
+        xhr.send(JSON.stringify({
+            name: viewGameList.options[viewGameList.selectedIndex].textContent,
+            filename: viewGameList.value,
+            questions: displayGameDiv.innerText.split("\n")
         }));
     });
 });

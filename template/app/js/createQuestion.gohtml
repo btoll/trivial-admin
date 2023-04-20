@@ -33,45 +33,6 @@ document.addEventListener("DOMContentLoaded", event => {
         event.preventDefault();
     });
 
-    /*
-    downloadGame.addEventListener("click", event => {
-        const xhr = getXHR("POST", "download");
-        xhr.responseType = "arraybuffer";
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                // https://gist.github.com/zynick/12bae6dbc76f6aacedf0
-                let filename = "";
-                const disposition = xhr.getResponseHeader("Content-Disposition");
-                // TODO.
-                if (disposition && disposition.indexOf("attachment") !== -1) {
-                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                    var matches = filenameRegex.exec(disposition);
-                    if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-                }
-                const blob = new Blob([xhr.response], {
-                    type: xhr.getResponseHeader("Content-Type")
-                });
-                const URL = window.URL || window.webkitURL;
-                const downloadUrl = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = downloadUrl;
-                // HTML5 a[download] attribute.
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                // Cleanup.
-                setTimeout(function () {
-                    URL.revokeObjectURL(downloadUrl);
-                    document.body.removeChild(a);
-                }, 1000);
-            }
-        };
-        xhr.send(JSON.stringify({
-            filename: fileName.value,
-        }));
-    });
-    */
-
     document.getElementById("questionsForm").addEventListener("submit", event => {
         checked = choicesDiv.querySelectorAll("input[type=checkbox]:checked")
         if (!checked.length) {

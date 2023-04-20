@@ -12,12 +12,26 @@ li {
     list-style-type: none;
     margin: 2% 0;
 }
+body > div {
+    margin: 20px auto auto;
+    width: 50%;
+}
 form {
     background-color: #fff;
 	border-radius: 25px;
 	border: 4px solid #000;
     margin: 20px;
 	padding: 20px;
+}
+form:first-child div:first-child {
+    background-color: #c3ddb4;
+    border: 1px solid #000;
+    border-radius: 10px;
+}
+form:nth-child(2) div:first-child {
+    background-color: #b4dbce;
+    border: 1px solid #000;
+    border-radius: 10px;
 }
 form fieldset {
     border: 0;
@@ -60,6 +74,7 @@ form #formError {
 
 {{ template "css/menu" }}
 {{ template "css/createGame" }}
+{{ template "css/runGame" }}
 {{ template "css/viewGame" }}
 {{ end }}
 

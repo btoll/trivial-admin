@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", event => {
     const createGame = document.getElementById("createGame");
     const runGame = document.getElementById("runGame");
     const viewGame = document.getElementById("viewGame");
-    const viewGameList = document.getElementById("viewGameList");
+    const viewGameList = document.getElementById("viewGameForm").querySelector("select[name=gameList]");
+    const runGameList = document.getElementById("runGameForm").querySelector("select[name=gameList]");
+    const displayGame = document.getElementById("displayGame");
 
     document.getElementById("createGameLink").addEventListener("click", event => {
         createGame.classList.remove("hide");
@@ -15,12 +17,24 @@ document.addEventListener("DOMContentLoaded", event => {
         runGame.classList.remove("hide");
         createGame.classList.add("hide");
         viewGame.classList.add("hide");
+
+        const xhr = getXHR("GET", "get_games");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                runGameList.innerHTML = "";
+                runGameList.appendChild(makeSelections(JSON.parse(resp.ui_message)));
+            }
+        };
+        xhr.send(null);
     });
 
     document.getElementById("viewGameLink").addEventListener("click", event => {
         viewGame.classList.remove("hide");
         runGame.classList.add("hide");
         createGame.classList.add("hide");
+        displayGame.classList.add("hide");
+
         const xhr = getXHR("GET", "get_games");
         xhr.onload = () => {
             if (xhr.status === 200) {
