@@ -1,18 +1,36 @@
 {{ define "js/createQuestion" }}
 document.addEventListener("DOMContentLoaded", event => {
-    const questionsForm = document.getElementById("questionsForm");
     const fileName = document.getElementById("fileName");
     const question = document.getElementById("question");
     const choicesDiv = document.getElementById("choicesDiv");
     const createChoices = document.getElementById("createChoices");
-    const addQuestion = document.getElementById("addQuestion");
 
     createChoices.addEventListener("click", event => {
         choicesDiv.appendChild(
             makeChoices(document.getElementById("choices").value)
             );
         createChoices.setAttribute("disabled", "disabled");
-        addQuestion.disabled = false;
+        document.getElementById("addQuestion").disabled = false;
+    });
+
+    document.getElementById("gameAndFilenameForm").addEventListener("submit", event => {
+        const xhr = getXHR("POST", "add_game");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                if (!resp.success) {
+                    debugger;
+                } else {
+                    alert("Game and file created.");
+                    document.getElementById("addGameAndFilename").disabled = "true";
+                }
+            }
+        };
+        xhr.send(JSON.stringify({
+            name: document.getElementById("gameName").value,
+            filename: fileName.value
+        }));
+        event.preventDefault();
     });
 
     /*
@@ -54,7 +72,7 @@ document.addEventListener("DOMContentLoaded", event => {
     });
     */
 
-    questionsForm.addEventListener("submit", event => {
+    document.getElementById("questionsForm").addEventListener("submit", event => {
         checked = choicesDiv.querySelectorAll("input[type=checkbox]:checked")
         if (!checked.length) {
             alert("You need to mark at least one choice as correct.");

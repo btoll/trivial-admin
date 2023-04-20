@@ -41,6 +41,7 @@ func main() {
 	mux.HandleFunc("/get_games", GetGamesHandler)
 	mux.HandleFunc("/login", LoginHandler)
 	mux.HandleFunc("/question", CreateQuestionHandler)
+	mux.HandleFunc("/readfile", ReadfileHandler)
 	mux.HandleFunc("/signin", SigninHandler)
 	mux.HandleFunc("/view", ViewGameHandler)
 	log.Fatal(http.ListenAndServeTLS(":3001", "cert.pem", "key.pem", sessionManager.Authenticate(mux)))

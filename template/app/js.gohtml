@@ -29,14 +29,21 @@ const makeChoices = length => {
 
 const makeSelections = options => {
     const fragment = new DocumentFragment();
+
+    let option = document.createElement("option");
+    option.setAttribute("value", "");
+    option.appendChild(document.createTextNode("Select a game"));
+    fragment.appendChild(option);
+
     for (let i = 0; i < options.length; i++) {
-        let option = document.createElement("option");
+        option = document.createElement("option");
         const opt = options[i];
         option.setAttribute("id", opt.name);
         option.setAttribute("value", opt.filename);
         option.appendChild(document.createTextNode(opt.name));
         fragment.appendChild(option);
     }
+
     return fragment;
 };
 
@@ -52,8 +59,8 @@ const getXHR = (method, api) => {
     return xhr;
 };
 
-{{ template "js/gameAndFilename" . }}
-{{ template "js/createQuestion" . }}
-{{ template "js/menu" . }}
+{{ template "js/createQuestion" }}
+{{ template "js/viewGame" }}
+{{ template "js/menu" }}
 {{ end }}
 

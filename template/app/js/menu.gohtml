@@ -1,24 +1,23 @@
 {{ define "js/menu" }}
 document.addEventListener("DOMContentLoaded", event => {
-    const menu = document.getElementById("menu");
-    const createGameLink = document.getElementById("createGameLink");
-    const runGameLink = document.getElementById("runGameLink");
-    const viewGameLink = document.getElementById("viewGameLink");
+    const createGame = document.getElementById("createGame");
+    const runGame = document.getElementById("runGame");
+    const viewGame = document.getElementById("viewGame");
     const viewGameList = document.getElementById("viewGameList");
 
-    createGameLink.addEventListener("click", event => {
+    document.getElementById("createGameLink").addEventListener("click", event => {
         createGame.classList.remove("hide");
         runGame.classList.add("hide");
         viewGame.classList.add("hide");
     });
 
-    runGameLink.addEventListener("click", event => {
+    document.getElementById("runGameLink").addEventListener("click", event => {
         runGame.classList.remove("hide");
         createGame.classList.add("hide");
         viewGame.classList.add("hide");
     });
 
-    viewGameLink.addEventListener("click", event => {
+    document.getElementById("viewGameLink").addEventListener("click", event => {
         viewGame.classList.remove("hide");
         runGame.classList.add("hide");
         createGame.classList.add("hide");

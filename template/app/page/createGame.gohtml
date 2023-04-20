@@ -1,6 +1,27 @@
-{{ define "form/createGame" }}
+{{ define "page/createGame" }}
+<div id="createGame" class="hide">
+    <form id="gameAndFilenameForm">
+        <div>
+            <p>
+            <label for="gameName">Game Name</label>
+            <input id="gameName" name="gameName" type="text" required>
+            </p>
+
+            <p>
+            <label for="fileName">File Name</label>
+            <input id="fileName" name="fileName" type="text" placeholder="game_name.csv" required>
+            </p>
+
+            <!-- The label only exists to align the button. -->
+            <p>
+            <label class="transparent">foo</label>
+            <input id="addGameAndFilename" name="addGameAndFilename" value="Add Game" type="submit">
+            </p>
+        </div>
+    </form>
+
     <form id="questionsForm">
-        <div id="questionAndChoices">
+        <div>
             <p>
             <label for="question">Question</label>
             <textarea id="question" name="question" required></textarea>
@@ -27,5 +48,6 @@
             </p>
         </div>
     </form>
+</div>
 {{ end }}
 

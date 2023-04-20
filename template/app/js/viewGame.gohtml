@@ -1,0 +1,21 @@
+{{ define "js/viewGame" }}
+document.addEventListener("DOMContentLoaded", event => {
+    document.getElementById("viewGameList").addEventListener("change", event => {
+        const target = event.target;
+        const xhr = getXHR("POST", "readfile");
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resp = JSON.parse(xhr.response);
+                document.getElementById("displayGame")
+                    .getElementsByTagName("div")[0]
+                    .innerHTML = resp.questions.join("<br>");
+            }
+        };
+        xhr.send(JSON.stringify({
+            name: target.options[target.selectedIndex].textContent,
+            filename: target.value
+        }));
+    });
+});
+{{ end }}
+

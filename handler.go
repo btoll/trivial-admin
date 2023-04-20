@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -14,8 +15,8 @@ import (
 //go:embed template/app/*.gohtml
 var templateFilesApp embed.FS
 
-//go:embed template/app/form/*.gohtml
-var templateFilesForm embed.FS
+//go:embed template/app/page/*.gohtml
+var templateFilesPage embed.FS
 
 //go:embed template/app/css/*.gohtml
 var templateFilesCSS embed.FS
@@ -38,6 +39,8 @@ type Response struct {
 type Game struct {
 	Name     string `json:"name"`
 	Filename string `json:"filename"`
+	//	Questions []*Question `json:"questions"`
+	Questions []string `json:"questions"`
 }
 
 type Question struct {
@@ -105,7 +108,7 @@ func BaseHandler(w http.ResponseWriter, r *http.Request) {
 		"Content-Type": {"text/html; charset=utf-8"},
 	}
 	tpl := template.Must(template.ParseFS(templateFilesApp, "template/app/*.gohtml"))
-	template.Must(tpl.ParseFS(templateFilesForm, "template/app/form/*.gohtml"))
+	template.Must(tpl.ParseFS(templateFilesPage, "template/app/page/*.gohtml"))
 	template.Must(tpl.ParseFS(templateFilesCSS, "template/app/css/*.gohtml"))
 	template.Must(tpl.ParseFS(templateFilesJS, "template/app/js/*.gohtml"))
 	if err := tpl.Execute(w, "https://127.0.0.1:3001"); err != nil {
@@ -177,10 +180,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetGamesHandler(w http.ResponseWriter, r *http.Request) {
-	ctxVal := r.Context().Value("session")
-	session := ctxVal.(*Session)
-	fmt.Println("session.Username", session.Username)
-	fmt.Println("session.Cookie", session.Cookie)
+	//	ctxVal := r.Context().Value("session")
+	//	session := ctxVal.(*Session)
 	rows, err := db.Query("SELECT name,filename FROM games WHERE owner_id=1")
 	if err != nil {
 		fmt.Println(err)
@@ -230,6 +231,42 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err := tpl.Execute(w, "https://127.0.0.1:3001"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func ReadfileHandler(w http.ResponseWriter, r *http.Request) {
+	ctxVal := r.Context().Value("session")
+	session := ctxVal.(*Session)
+	question := &Question{}
+	_ = json.NewDecoder(r.Body).Decode(question)
+	// The files are small enough to read in one go.
+	// Note that `os.ReadFile` closes the file automatically.
+	//	b, err := os.ReadFile(fmt.Sprintf("games/%s/%s", session.Username, question.Filename))
+	file, err := os.Open(fmt.Sprintf("games/%s/%s", session.Username, question.Filename))
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	q := []string{}
+	for scanner.Scan() {
+		q = append(q, scanner.Text())
+	}
+	if err = scanner.Err(); err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:   false,
+			UIMessage: fmt.Sprintf("%s", err),
+		})
+		return
+	}
+	json.NewEncoder(w).Encode(&Game{
+		Name:      question.Name,
+		Filename:  question.Filename,
+		Questions: q,
+	})
 }
 
 func SigninHandler(w http.ResponseWriter, r *http.Request) {
