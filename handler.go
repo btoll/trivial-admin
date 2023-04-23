@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/google/uuid"
 )
 
 //go:embed template/app/*.gohtml
@@ -188,8 +190,13 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetGamesHandler(w http.ResponseWriter, r *http.Request) {
-	//	ctxVal := r.Context().Value("session")
-	//	session := ctxVal.(*Session)
+	ctxVal := r.Context().Value("session")
+	if ctxVal == nil {
+		fmt.Println("Session does not exist, exiting...")
+		return
+	}
+	session := ctxVal.(*Session)
+	fmt.Printf("session %+v\n", session)
 	rows, err := db.Query("SELECT name,filename FROM games WHERE owner_id=1")
 	if err != nil {
 		fmt.Println(err)
@@ -291,7 +298,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		errTpl.Execute(w, err)
 		return
 	}
-	NewSession(l.Username).WriteCookie(w)
+	NewSession(uuid.NewString()).WriteCookie(w)
 	http.Redirect(w, r, "https://127.0.0.1:3001/", 302)
 }
 

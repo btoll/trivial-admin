@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 var sessions = make(map[string]*Session)
@@ -45,15 +43,14 @@ func NewSessionManager() SessionManager {
 	}
 }
 
-func NewSession(username string) *Session {
-	_uuid := uuid.NewString()
+func NewSession(token string) *Session {
 	session := &Session{
 		Username: username,
-		Value:    _uuid,
+		Value:    token,
 		Expiry:   setExpiry(259200), // 3 days.
 		Cookie: &SessionCookie{
 			Name:  "trivial-admin-session",
-			Value: _uuid,
+			Value: token,
 			//			Domain:  "127.0.0.1",
 			Path:     "/",
 			Expires:  setExpiry(3600),
@@ -62,7 +59,8 @@ func NewSession(username string) *Session {
 			SameSite: http.SameSiteNoneMode,
 		},
 	}
-	sessionManager.Sessions[_uuid] = session
+	fmt.Printf("[INFO] Session `%s` added.\n", token)
+	sessionManager.Sessions[token] = session
 	return session
 }
 
@@ -87,27 +85,23 @@ func (s *Session) IsExpired() bool {
 
 func (s *SessionManager) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("r.URL.Path", r.URL.Path)
-		//		if r.URL.Path != "/login" && r.URL.Path != "/signin" && r.URL.Path != "/create" {
 		if r.URL.Path != "/favicon.ico" && r.URL.Path != "/login" && r.URL.Path != "/signin" && r.URL.Path != "/create" {
 			setCorsHeaders(w)
 			c, err := r.Cookie("trivial-admin-session")
 			if err != nil {
 				if err == http.ErrNoCookie {
-					fmt.Println("http: no Cookie")
+					fmt.Println("[WARNING] http: no Cookie")
 					http.Redirect(w, r, "https://127.0.0.1:3001/login", 302)
 				}
 			} else {
 				session, exists := s.Sessions[c.Value]
-				if exists {
-					fmt.Println("Adding the user session to the request context...")
-					newCtx := context.WithValue(r.Context(), "session", session)
-					r = r.WithContext(newCtx)
-					//				} else {
-					//					NewSession(c.Value).WriteCookie(w)
-				} else {
-					fmt.Println("doesn't exist!")
+				if !exists {
+					fmt.Println("[INFO] Session doesn't exist, creating now...")
+					session = NewSession(c.Value)
 				}
+				fmt.Println("[INFO] Adding the user session to the request context...")
+				newCtx := context.WithValue(r.Context(), "session", session)
+				r = r.WithContext(newCtx)
 			}
 		}
 		next.ServeHTTP(w, r)
